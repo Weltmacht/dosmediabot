@@ -1,6 +1,6 @@
 import time
 import asyncio
-import webbrowser
+import uuid
 from twitchAPI.helper import first
 from twitchAPI.twitch import Twitch
 from twitchAPI.oauth import UserAuthenticator
@@ -39,7 +39,7 @@ async def on_bits(data: ChannelBitsUseEvent):
     bit_amount = get_env_data_as_dict('.env')["BIT_AMOUNT"] or 25
     message = data.event.message.text.split()
     
-    if(data.event.bits == 25 and message[:23] == "https://www.youtube.com"):
+    if(data.event.bits == 25):
         add_item(username=data.event.chatter_user_name, link=message[0], method="BITS")
 
 # https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchannel_points_custom_reward_redemptionadd
@@ -76,19 +76,24 @@ async def run():
     await eventsub.listen_channel_chat_message(user.id, user.id, on_message)
 
 def add_item(username: str, link: str, method: str):
-    #this will be for a stateful queue, currently just writing to file?
+    #this will be for a stateful queue,  going to likely use sqlite3
     item={"username":username, "link":link, "method": method, "etime": time.gmtime()}
     print(item["username"] + '|' + item["method"] + '|' + item["link"] + '|' + time.strftime("%I:%M:%S", item["etime"]))
+    
+
     if(item["link"][:23] == "https://www.youtube.com" or item["link"][:19] == "https://youtube.com"):
-        webbrowser.open(item["link"], 1, autoraise=False)
+        print("It got let through")
+        # webbrowser.open(item["link"], 2, autoraise=False)  #adventures in browser window opening, a no go :( 
     else:
         print("Link invalid! Didn't goto youtube.com or was a youtube short or something")
+    read_queue()
 
 def remove_item(linenum: int):
     print("remove line, based on username and time?")
     
 def read_queue():
-    print("going to read the queue here on startup")
+    #reload object from file
+   print("Gonna use SQLite3")
 
 def main():
     asyncio.run(run())
