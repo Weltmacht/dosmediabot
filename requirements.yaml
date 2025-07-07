@@ -1,0 +1,4 @@
+name: test-env
+depenencies:
+- pyforms
+- twitchAPI
