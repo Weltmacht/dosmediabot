@@ -28,8 +28,10 @@ async def on_message(data: ChannelChatMessageEvent):
     badges: ChatMessageBadge = data.event.badges
 
     allow_mods = get_env_data_as_dict('.env')["ALLOW_MODS"] or False
+    command_prefix = get_env_data_as_dict('.env')["CMD_PREFIX"] or '!vr'
 
-    if(len(message) >=2 and message[0] == "!vr"):
+
+    if(len(message) >=2 and message[0] == command_prefix):
         for badge in badges:
             if((badge.set_id == "moderator" and allow_mods) or badge.set_id == "broadcaster"):
                 add_item(username=data.event.chatter_user_name, link=message[1], method="VIDR")
@@ -70,7 +72,7 @@ async def run():
     ws = EventSubWebsocket(twitch)
     eventsub = EventSubWebsocket(twitch)
     eventsub.start()
-    print("Bot initialized and listening.  Test with a !vr link from a moderator or broadcaster")
+    print("Bot initialized and listening.")
     await eventsub.listen_channel_bits_use(user.id, on_bits)
     await eventsub.listen_channel_points_automatic_reward_redemption_add_v2(user.id, on_channelpointredemption)
     await eventsub.listen_channel_chat_message(user.id, user.id, on_message)
