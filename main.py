@@ -1,6 +1,7 @@
 import time
 import asyncio
 import uuid
+import sqlite3
 from twitchAPI.helper import first
 from twitchAPI.twitch import Twitch
 from twitchAPI.oauth import UserAuthenticator
@@ -30,7 +31,6 @@ async def on_message(data: ChannelChatMessageEvent):
     allow_mods = get_env_data_as_dict('.env')["ALLOW_MODS"] or False
     command_prefix = get_env_data_as_dict('.env')["CMD_PREFIX"] or '!vr'
 
-
     if(len(message) >=2 and message[0] == command_prefix):
         for badge in badges:
             if((badge.set_id == "moderator" and allow_mods) or badge.set_id == "broadcaster"):
@@ -53,6 +53,17 @@ async def on_channelpointredemption(data: ChannelPointsCustomRewardRedemptionDat
         add_item(username=data.event.chatter_user_name, link=message[0], method="GBOI")
 
 async def run():
+    connection = sqlite3.connect('queue.db')
+    cursor = connection.cursor()
+
+    cursor.execute("CREATE TABLE IF NOT EXISTS queue (username TEXT, link TEXT, method TEXT, time REAL)")
+    cursor.execute(f"""
+                    DELETE FROM queue
+                    WHERE time < strftime('%s', 'now', '-{get_env_data_as_dict('.env')["KEEP_HISTORY_HRS"]} hours');
+                                """)
+    connection.commit()
+    connection.close()
+
     # Set scope for claim
     USER_SCOPE=[AuthScope.BITS_READ, AuthScope.CHANNEL_READ_REDEMPTIONS, AuthScope.USER_READ_CHAT]
 
@@ -79,23 +90,40 @@ async def run():
 
 def add_item(username: str, link: str, method: str):
     #this will be for a stateful queue,  going to likely use sqlite3
-    item={"username":username, "link":link, "method": method, "etime": time.gmtime()}
-    print(item["username"] + '|' + item["method"] + '|' + item["link"] + '|' + time.strftime("%I:%M:%S", item["etime"]))
-    
+    item={"uuid":str(uuid.uuid4()),"username":username,"link":link,"method":method,"etime":time.time()}
+    print(item["uuid"], item["username"] + '|' + item["method"] + '|' + item["link"] + '|' + time.strftime("%I:%M:%S", time.localtime(item["etime"])))
 
     if(item["link"][:23] == "https://www.youtube.com" or item["link"][:19] == "https://youtube.com"):
-        print("It got let through")
-        # webbrowser.open(item["link"], 2, autoraise=False)  #adventures in browser window opening, a no go :( 
+        # webbrowser.open(item["link"], 2, autoraise=False)  #adventures in browser window opening, a no go :(
+        connection = sqlite3.connect('queue.db')
+        cursor = connection.cursor()
+
+        cursor.execute(f"""
+                       INSERT INTO queue VALUES 
+                       ('{item['username']}', '{item['link']}', '{item['method']}', {item['etime']})
+                       """)
+        connection.commit()
+        connection.close()
     else:
         print("Link invalid! Didn't goto youtube.com or was a youtube short or something")
-    read_queue()
 
-def remove_item(linenum: int):
-    print("remove line, based on username and time?")
-    
+def remove_item(id: int):
+    connection = sqlite3.connect('queue.db')
+    cursor = connection.cursor()
+    full_queue = cursor.execute(f"""
+                                DELETE FROM queue WHERE rowid = {id}
+                                """)
+    connection.commit()
+    connection.close()
+
 def read_queue():
     #reload object from file
-   print("Gonna use SQLite3")
+    connection = sqlite3.connect('queue.db')
+    cursor = connection.cursor()
+    full_queue = cursor.execute(f"""
+                                SELECT rowid, link, username, method, time FROM queue ORDER BY rowid ASC
+                                """)
+    return full_queue #this is temporary, need to return a data structure for populating a table, rather than the SQL connection object.  Will want to close before return
 
 def main():
     asyncio.run(run())
