@@ -62,7 +62,7 @@ async def run():
     
     auth = UserAuthenticator(twitch, USER_SCOPE, force_verify=False)
     print("Being redirected to Twitch.tv to authorize bot to access channel as your twitch user account")
-    # User authorization 
+    # User authorization
     token, refresh_token = await auth.authenticate()
     await twitch.set_user_authentication(token, USER_SCOPE, refresh_token)
 
@@ -113,11 +113,13 @@ def read_queue():
                                 """)
     return full_queue #this is temporary, need to return a data structure for populating a table, rather than the SQL connection object.  Will want to close before return
 
-def clean_queue():
+def db_init():
     connection = sqlite3.connect('queue.db')
     cursor = connection.cursor()
 
     cursor.execute("CREATE TABLE IF NOT EXISTS queue (username TEXT, link TEXT, method TEXT, time REAL)")
+
+    #  Clean up stale requests from configured hours previously
     cursor.execute(f"""
                     DELETE FROM queue
                     WHERE time < strftime('%s', 'now', '-{get_env_data_as_dict('.env')["KEEP_HISTORY_HRS"]} hours');
@@ -128,7 +130,7 @@ def clean_queue():
 
 
 def main():
-    clean_queue()
+    db_init()
     asyncio.run(run())
 
 if __name__ == "__main__":
