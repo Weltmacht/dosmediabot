@@ -53,22 +53,11 @@ async def on_channelpointredemption(data: ChannelPointsCustomRewardRedemptionDat
         add_item(username=data.event.chatter_user_name, link=message[0], method="GBOI")
 
 async def run():
-    connection = sqlite3.connect('queue.db')
-    cursor = connection.cursor()
-
-    cursor.execute("CREATE TABLE IF NOT EXISTS queue (username TEXT, link TEXT, method TEXT, time REAL)")
-    cursor.execute(f"""
-                    DELETE FROM queue
-                    WHERE time < strftime('%s', 'now', '-{get_env_data_as_dict('.env')["KEEP_HISTORY_HRS"]} hours');
-                                """)
-    connection.commit()
-    connection.close()
-
     # Set scope for claim
     USER_SCOPE=[AuthScope.BITS_READ, AuthScope.CHANNEL_READ_REDEMPTIONS, AuthScope.USER_READ_CHAT]
-
-    print("Attempting to authenticate as bot ID" + get_env_data_as_dict('.env')["APP_ID"])
+    
     # set up twitch api instance and add user authentication with some scopes
+    print("Attempting to authenticate as bot ID " + get_env_data_as_dict('.env')["APP_ID"])
     twitch = await Twitch(get_env_data_as_dict('.env')["APP_ID"], get_env_data_as_dict('.env')["APP_SECRET"])
     
     auth = UserAuthenticator(twitch, USER_SCOPE, force_verify=False)
@@ -117,7 +106,6 @@ def remove_item(id: int):
     connection.close()
 
 def read_queue():
-    #reload object from file
     connection = sqlite3.connect('queue.db')
     cursor = connection.cursor()
     full_queue = cursor.execute(f"""
@@ -125,10 +113,23 @@ def read_queue():
                                 """)
     return full_queue #this is temporary, need to return a data structure for populating a table, rather than the SQL connection object.  Will want to close before return
 
+def clean_queue():
+    connection = sqlite3.connect('queue.db')
+    cursor = connection.cursor()
+
+    cursor.execute("CREATE TABLE IF NOT EXISTS queue (username TEXT, link TEXT, method TEXT, time REAL)")
+    cursor.execute(f"""
+                    DELETE FROM queue
+                    WHERE time < strftime('%s', 'now', '-{get_env_data_as_dict('.env')["KEEP_HISTORY_HRS"]} hours');
+                    """)
+    print(f"DB: {cursor.rowcount} ROWS AFFECTED")
+    connection.commit()
+    connection.close()
+
+
 def main():
+    clean_queue()
     asyncio.run(run())
 
 if __name__ == "__main__":
     main()
-
-    
