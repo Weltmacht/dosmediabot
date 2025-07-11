@@ -40,9 +40,9 @@ async def on_message(data: ChannelChatMessageEvent):
 async def on_bits(data: ChannelBitsUseEvent):
     bit_amount = get_env_data_as_dict('.env')["BIT_AMOUNT"] or 25
     message = data.event.message.text.split()
-    
-    if(data.event.bits == 25):
-        add_item(username=data.event.chatter_user_name, link=message[0], method="BITS")
+
+    if(str(data.event.bits) == bit_amount):
+        add_item(username=data.event.user_name, link=message[1], method="BITS")
 
 # https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchannel_points_custom_reward_redemptionadd
 async def on_channelpointredemption(data: ChannelPointsCustomRewardRedemptionData):
@@ -50,7 +50,7 @@ async def on_channelpointredemption(data: ChannelPointsCustomRewardRedemptionDat
     point_amount = get_env_data_as_dict('.env')["POINT_AMOUNT"] or 2500
 
     if(data.event.reward.cost == point_amount):
-        add_item(username=data.event.chatter_user_name, link=message[0], method="GBOI")
+        add_item(username=data.event.user_name, link=message[0], method="GBOI")
 
 async def run():
     # Set scope for claim
