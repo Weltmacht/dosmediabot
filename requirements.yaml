@@ -1,4 +1,4 @@
-name: test-env
+name: env
 depenencies:
 - spotipy
 - twitchAPI
