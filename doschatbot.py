@@ -45,9 +45,6 @@ class DOSBot:
                 if((badge.set_id == "moderator" and allow_mods) or badge.set_id == "broadcaster"):
                     print("better late than never")
                     self.index()
-                    #self.sp.current_user()
-                    #token = SpotifyClientCredentials(self.get_env_data_as_dict('.env')["SPOTIFY_APP_ID"], client_secret=self.get_env_data_as_dict('.env')["SPOTIFY_APP_SECRET"])
-                    #spotify.add_to_queue(message[1])
 
     # https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelbitsuse
     async def on_bits(self, data: ChannelBitsUseEvent):
@@ -101,7 +98,7 @@ class DOSBot:
         item={"uuid":str(uuid.uuid4()),"username":username,"link":link,"method":method,"etime":time.time()}
         print(item["uuid"], item["username"] + '|' + item["method"] + '|' + item["link"] + '|' + time.strftime("%I:%M:%S", time.localtime(item["etime"])))
 
-        if(item["link"][:23] == "https://www.youtube.com" or item["link"][:19] == "https://youtube.com"):
+        if(item["link"][:23] == "https://www.youtube.com" or item["link"][:19] == "https://youtube.com" or item["link"][:20] == "https://www.youtu.be" or item["link"][:16] == "https://youtu.be"):
             # webbrowser.open(item["link"], 2, autoraise=False)  #adventures in browser window opening, a no go :(
             connection = sqlite3.connect('queue.db')
             cursor = connection.cursor()
