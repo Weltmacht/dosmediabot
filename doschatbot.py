@@ -40,6 +40,7 @@ class DOSBot:
             for badge in badges:
                 if((badge.set_id == "moderator" and allow_mods) or allow_free or badge.set_id == "broadcaster"):
                     self.add_item(username=data.event.chatter_user_name, link=message[1], method="VIDR")
+                    break
 
         if(len(message) >=2 and message[0] == "!sr"):
             for badge in badges:
