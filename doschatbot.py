@@ -27,13 +27,16 @@ class DOSBot:
     async def app_refresh(self, token: str):
         print(f'my new app token is: {token}')
 
+    def str_to_bool(self, s):
+        return s.strip().lower() == 'true'
+
     # https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatmessage
     async def on_message(self, data: ChannelChatMessageEvent):
         message = data.event.message.text.split() 
         badges: ChatMessageBadge = data.event.badges
 
-        allow_mods = self.get_env_data_as_dict('.env')["ALLOW_MODS"] or False
-        allow_free = self.get_env_data_as_dict('.env')["ALLOW_FREE"] or False
+        allow_mods = self.str_to_bool(self.get_env_data_as_dict('.env')["ALLOW_MODS"]) or False 
+        allow_free = self.str_to_bool(self.get_env_data_as_dict('.env')["ALLOW_FREE"]) or False
         command_prefix = self.get_env_data_as_dict('.env')["CMD_PREFIX"] or '!vr'
 
         if(len(message) >=2 and message[0] == command_prefix):
@@ -131,9 +134,6 @@ class DOSBot:
                                     SELECT rowid, link, username, method, time FROM queue ORDER BY rowid ASC
                                     """)
         return full_queue #this is temporary, need to return a data structure for populating a table, rather than the SQL connection object.  Will want to close before return
-
-    def run_server(self):
-        run(host='localhost', port=8080)
 
     def db_init(self):
         connection = sqlite3.connect('queue.db')
