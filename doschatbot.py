@@ -33,11 +33,12 @@ class DOSBot:
         badges: ChatMessageBadge = data.event.badges
 
         allow_mods = self.get_env_data_as_dict('.env')["ALLOW_MODS"] or False
+        allow_free = self.get_env_data_as_dict('.env')["ALLOW_FREE"] or False
         command_prefix = self.get_env_data_as_dict('.env')["CMD_PREFIX"] or '!vr'
 
         if(len(message) >=2 and message[0] == command_prefix):
             for badge in badges:
-                if((badge.set_id == "moderator" and allow_mods) or badge.set_id == "broadcaster"):
+                if((badge.set_id == "moderator" and allow_mods) or allow_free or badge.set_id == "broadcaster"):
                     self.add_item(username=data.event.chatter_user_name, link=message[1], method="VIDR")
 
         if(len(message) >=2 and message[0] == "!sr"):
@@ -56,7 +57,8 @@ class DOSBot:
             self.add_item(username=data.event.user_name, link=message[1], method="BITS")
 
         if(str(data.event.bits) == song_bit_amount):
-            self.spotify.spotify.add_to_queue(link=message[1])
+            return
+            #self.spotify.spotify.add_to_queue(link=message[1])
 
     # https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchannel_points_custom_reward_redemptionadd
     async def on_channelpointredemption(self, data: ChannelPointsCustomRewardRedemptionData):
