@@ -41,16 +41,18 @@ class DOSBot:
 
         if(len(message) >=2 and message[0].lower() == command_prefix):
             if(data.event.chatter_user_name == 'weltmacht' and allow_mods):
-                self.add_item(username="😎💰 " + data.event.chatter_user_name + " 💰😎", link=message[1], method="VIDR")
+                self.add_item(username="😎👌 " + data.event.chatter_user_name + " 👌😎", link=message[1], method="VIDR")
                 return    
-            if(allow_free):
-                self.add_item(username=data.event.chatter_user_name, link=message[1], method="VIDR")
+            if(data.event.chatter_user_name == 'kelleywith2ees'):
+                self.add_item(username="💙 " + data.event.chatter_user_name + " 💙", link=message[1], method="VIDR")
                 return
             for badge in badges:
                 if((badge.set_id == "moderator" and allow_mods) or badge.set_id == "broadcaster"):
                     self.add_item(username=data.event.chatter_user_name, link=message[1], method="VIDR")
                     return
-
+            if(allow_free):
+                self.add_item(username=data.event.chatter_user_name, link=message[1], method="VIDR")
+                return
         if(len(message) >=2 and message[0] == "!sr"):
             for badge in badges:
                 if((badge.set_id == "moderator" and allow_mods) or badge.set_id == "broadcaster"):
@@ -105,13 +107,11 @@ class DOSBot:
         await eventsub.listen_channel_chat_message(user.id, user.id, self.on_message)
 
     def add_item(self, username: str, link: str, method: str):
-        #this will be for a stateful queue,  going to likely use sqlite3
-
         item={"uuid":str(uuid.uuid4()),"username":username,"link":link,"method":method,"etime":time.time()}
         print(item["uuid"], item["username"] + '|' + item["method"] + '|' + item["link"] + '|' + time.strftime("%I:%M:%S", time.localtime(item["etime"])))
 
         if(item["link"][:23] == "https://www.youtube.com" or item["link"][:19] == "https://youtube.com" or item["link"][:20] == "https://www.youtu.be" or item["link"][:16] == "https://youtu.be"):
-            # webbrowser.open(item["link"], 2, autoraise=False)  #adventures in browser window opening, a no go :(
+            # webbrowser.open(item["link"], 2, autoraise=False)  # adventures in browser window opening, a no go, always front focus :(
             connection = sqlite3.connect('queue.db')
             cursor = connection.cursor()
 
