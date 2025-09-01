@@ -124,23 +124,6 @@ class DOSBot:
         else:
             print("Link invalid! Didn't goto youtube.com or was a youtube short or something")
 
-    def remove_item(self, id: int):
-        connection = sqlite3.connect('queue.db')
-        cursor = connection.cursor()
-        full_queue = cursor.execute(f"""
-                                    DELETE FROM queue WHERE rowid = {id}
-                                    """)
-        connection.commit()
-        connection.close()
-
-    def read_queue(self):
-        connection = sqlite3.connect('queue.db')
-        cursor = connection.cursor()
-        full_queue = cursor.execute(f"""
-                                    SELECT rowid, link, username, method, time FROM queue ORDER BY rowid ASC
-                                    """)
-        return full_queue #this is temporary, need to return a data structure for populating a table, rather than the SQL connection object.  Will want to close before return
-
     def db_init(self):
         connection = sqlite3.connect('queue.db')
         cursor = connection.cursor()
