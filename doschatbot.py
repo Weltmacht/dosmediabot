@@ -21,12 +21,6 @@ class DOSBot:
         except: 
             print("You need to include the .env file, John, with the TWITCH_APP_ID=<appid> and TWITCH_APP_SECRET=<secret>(don't show others this! its your bot!)")
 
-    async def user_refresh(self, token: str, refresh_token: str):
-        print(f'my new user token is: {token}')
-
-    async def app_refresh(self, token: str):
-        print(f'my new app token is: {token}')
-
     def str_to_bool(self, s):
         return s.strip().lower() == 'true'
 
@@ -98,12 +92,11 @@ class DOSBot:
         user = await first(twitch.get_users())
         print("Creating websockets and subbing to channel for notifs")
         # Create websocket
-        ws = EventSubWebsocket(twitch)
         eventsub = EventSubWebsocket(twitch)
         eventsub.start()
         print("Bot initialized and listening.")
         await eventsub.listen_channel_bits_use(user.id, self.on_bits)
-        await eventsub.listen_channel_points_automatic_reward_redemption_add_v2(user.id, self.on_channelpointredemption)
+        await eventsub.listen_channel_points_custom_reward_redemption_add(user.id, self.on_channelpointredemption)
         await eventsub.listen_channel_chat_message(user.id, user.id, self.on_message)
 
     def add_item(self, username: str, link: str, method: str):
