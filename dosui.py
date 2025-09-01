@@ -18,6 +18,8 @@ class DOSBotUI:
         self.setup_window()
         self.create_widgets()
         
+        self.schedule_queue_refresh()
+
     def setup_window(self):
         self.ws.title('DOSBot')
         self.ws.geometry('650x300')
@@ -136,7 +138,11 @@ class DOSBotUI:
                 self.my_queue.insert(parent='', index='end', text='', values=mklist)
         except sqlite3.Error as e:
             print(f"Database error: {e}")
-            
+
+    def schedule_queue_refresh(self):
+        self.read_queue()
+        self.ws.after(5000, self.schedule_queue_refresh)
+
     def run(self):
         self.ws.mainloop()
 

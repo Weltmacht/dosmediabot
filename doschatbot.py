@@ -37,13 +37,19 @@ class DOSBot:
 
         allow_mods = self.str_to_bool(self.get_env_data_as_dict('.env')["ALLOW_MODS"]) or False 
         allow_free = self.str_to_bool(self.get_env_data_as_dict('.env')["ALLOW_FREE"]) or False
-        command_prefix = self.get_env_data_as_dict('.env')["CMD_PREFIX"] or '!vr'
+        command_prefix = self.get_env_data_as_dict('.env')["CMD_PREFIX"].lower() or '!vr'
 
-        if(len(message) >=2 and message[0] == command_prefix):
+        if(len(message) >=2 and message[0].lower() == command_prefix):
+            if(data.event.chatter_user_name == 'weltmacht' and allow_mods):
+                self.add_item(username="😎💰 " + data.event.chatter_user_name + " 💰😎", link=message[1], method="VIDR")
+                return    
+            if(allow_free):
+                self.add_item(username=data.event.chatter_user_name, link=message[1], method="VIDR")
+                return
             for badge in badges:
-                if((badge.set_id == "moderator" and allow_mods) or allow_free or badge.set_id == "broadcaster"):
+                if((badge.set_id == "moderator" and allow_mods) or badge.set_id == "broadcaster"):
                     self.add_item(username=data.event.chatter_user_name, link=message[1], method="VIDR")
-                    break
+                    return
 
         if(len(message) >=2 and message[0] == "!sr"):
             for badge in badges:
@@ -66,7 +72,7 @@ class DOSBot:
 
     # https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchannel_points_custom_reward_redemptionadd
     async def on_channelpointredemption(self, data: ChannelPointsCustomRewardRedemptionData):
-        message = data.event.message.text.split()
+        message = data.event.user_input.split()
         video_point_amount = self.get_env_data_as_dict('.env')["VIDEO_POINT_AMOUNT"] or 2500
 
         if(data.event.reward.cost == video_point_amount):
